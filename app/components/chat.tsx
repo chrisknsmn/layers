@@ -389,15 +389,43 @@ export function Chat() {
     phase.kind === "auditing" ||
     phase.kind === "chatting";
 
+  const restart = () => {
+    setMessages([]);
+    setInput("");
+    setPhase({ kind: "idle" });
+  };
+
   const titleCard = (
-    <header className="shrink-0 rounded-xl border border-white bg-background px-6 py-5 text-center">
-      <h1 className="font-mono text-xl font-bold uppercase tracking-wider text-white">
-        ASO Audit Agent
-      </h1>
-      <p className="mt-2 font-mono text-xs leading-relaxed text-zinc-400">
-        Paste any Apple App Store URL to get a scored ASO audit with
-        prioritized recommendations to improve your listing.
-      </p>
+    <header className="shrink-0 rounded-xl border border-white bg-background px-6 py-4">
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="font-mono text-2xl font-bold uppercase tracking-wider text-white sm:text-3xl">
+          ASO Audit Agent
+        </h1>
+        <button
+          type="button"
+          onClick={restart}
+          aria-label="Restart"
+          title="Restart"
+          className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white bg-transparent text-white outline-none transition-colors hover:bg-white/10"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+            <path d="M21 3v5h-5" />
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+            <path d="M3 21v-5h5" />
+          </svg>
+        </button>
+      </div>
     </header>
   );
 
