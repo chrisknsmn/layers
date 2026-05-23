@@ -110,7 +110,7 @@ function RecommendationsSection({
   const dot = accentDot(accent);
 
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
+    <section className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-background">
       <header className="mb-3 flex items-baseline justify-between">
         <h3 className="flex items-center gap-2 text-base font-semibold">
           <span className={`size-2 rounded-full ${dot}`} aria-hidden />
@@ -174,7 +174,7 @@ function CompetitorTable({
   competitors: Competitor[];
 }) {
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-950">
+    <section className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-background">
       <header className="mb-3 flex items-baseline justify-between">
         <h3 className="text-base font-semibold">Competitor comparison</h3>
         <span className="text-xs text-zinc-500">Top {competitors.length}</span>

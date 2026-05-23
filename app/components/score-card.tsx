@@ -4,7 +4,7 @@ import type { Audit } from "@/mastra/schemas";
 
 export function ScoreCard({ audit }: { audit: Audit }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-background">
       <div className="flex items-end justify-between gap-4">
         <div>
           <div className="text-xs uppercase tracking-wide text-zinc-500">

@@ -43,7 +43,7 @@ export function DotGridHorizon() {
     const draw = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      if (!reduced) phase += dt * 0.35;
+      if (!reduced) phase += dt * 0.18;
       const frac = phase - Math.floor(phase);
 
       ctx.clearRect(0, 0, width, height);
@@ -56,15 +56,18 @@ export function DotGridHorizon() {
       const focalX = horizonY * 1.35;
       const camHeight = 1.4;
       const zMin = 0.55;
-      const rowSpacing = 0.38;
-      const colSpacing = 0.34;
-      const rowCount = 180;
+      const rowSpacing = 0.32;
+      const colSpacing = 0.30;
+      const rowCount = 220;
 
       const planeSpan = Math.max(1, height - horizonY);
 
       // Iterate from far → near so near-field dots paint on top.
+      // `frac` is added (not subtracted) so as time advances each
+      // row's distance grows — the grid appears to recede toward
+      // the horizon.
       for (let i = rowCount - 1; i >= 0; i--) {
-        const z = (i + 1 - frac) * rowSpacing + zMin;
+        const z = (i + frac) * rowSpacing + zMin;
         const screenY = horizonY + (focalY * camHeight) / z;
         if (screenY < horizonY + 0.3) continue;
         if (screenY > height + 4) continue;
@@ -92,13 +95,12 @@ export function DotGridHorizon() {
         const alpha = depthFade * sizeFade * 0.95;
         ctx.fillStyle = `rgba(229, 231, 235, ${alpha})`;
 
+        const side = radius * 2;
         for (let j = -cappedColHalf; j <= cappedColHalf; j++) {
           const screenX = width / 2 + (j * colSpacing * focalX) / z;
           if (screenX < -4) continue;
           if (screenX > width + 4) break;
-          ctx.beginPath();
-          ctx.arc(screenX, screenY, radius, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.fillRect(screenX - radius, screenY - radius, side, side);
         }
       }
 
@@ -140,7 +142,7 @@ export function DotGridHorizon() {
       ref={canvasRef}
       aria-hidden
       className="pointer-events-none fixed inset-0 h-full w-full"
-      style={{ background: "#0a0a0a", zIndex: -1 }}
+      style={{ background: "var(--background)", zIndex: -1 }}
     />
   );
 }

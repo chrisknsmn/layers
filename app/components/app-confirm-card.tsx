@@ -19,7 +19,7 @@ export function AppConfirmCard({
   resolved,
 }: Props) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+    <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-background">
       <div className="flex items-start gap-4">
         {candidate.artworkUrl ? (
           <Image

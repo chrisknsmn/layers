@@ -377,8 +377,8 @@ export function Chat() {
     phase.kind === "chatting";
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <header className="border-b border-zinc-200 bg-white/80 px-4 py-3 backdrop-blur dark:border-zinc-800 dark:bg-black/60">
+    <div className="flex h-full min-h-0 flex-col gap-5 p-5">
+      <header className="shrink-0 rounded-xl border border-primary bg-background px-4 py-3">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
           <div>
             <h1 className="text-base font-semibold">ASO Audit Agent</h1>
@@ -408,7 +408,7 @@ export function Chat() {
 
       <div
         ref={scrollerRef}
-        className="flex-1 overflow-y-auto px-4 py-6"
+        className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-primary bg-background px-4 py-6"
       >
         <div className="mx-auto flex max-w-3xl flex-col gap-4">
           {messages.map((m) => (
@@ -424,7 +424,7 @@ export function Chat() {
 
       <form
         onSubmit={onSubmit}
-        className="border-t border-zinc-200 bg-white/80 px-4 py-3 backdrop-blur dark:border-zinc-800 dark:bg-black/60"
+        className="shrink-0 rounded-xl border border-primary bg-background px-4 py-3"
       >
         <div className="mx-auto flex max-w-3xl items-center gap-2">
           <input
@@ -435,7 +435,7 @@ export function Chat() {
                 ? "Ask a follow-up, or paste another App Store URL…"
                 : "Paste an Apple App Store URL…"
             }
-            className="flex-1 rounded-full border border-zinc-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-zinc-500 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-950"
+            className="flex-1 rounded-full border border-zinc-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-zinc-500 disabled:opacity-50 dark:border-zinc-700 dark:bg-background"
             disabled={
               busy || phase.kind === "awaiting-confirmation"
             }
@@ -491,7 +491,7 @@ function MessageView({
 
   if (message.kind === "text") {
     return (
-      <div className="max-w-[80%] rounded-2xl border border-zinc-200 bg-white px-4 py-2 text-sm leading-6 text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
+      <div className="max-w-[80%] rounded-2xl border border-zinc-200 bg-white px-4 py-2 text-sm leading-6 text-zinc-900 dark:border-zinc-800 dark:bg-background dark:text-zinc-100">
         <span className="whitespace-pre-wrap">{message.text}</span>
         {message.text === "" && <Spinner inline />}
       </div>
