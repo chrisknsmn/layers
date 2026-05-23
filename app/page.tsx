@@ -1,9 +1,9 @@
-import { LayerCard } from "./components/layer-card";
+import { Chat } from "./components/chat";
 
 export default function Home() {
   return (
     <main className="flex flex-1 items-center justify-center px-6">
-      <LayerCard />
+      <Chat />
     </main>
   );
 }

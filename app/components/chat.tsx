@@ -21,42 +21,59 @@ type Phase =
 const APP_STORE_URL_RE =
   /https?:\/\/apps\.apple\.com\/[a-z]{2}\/app\/(?:[^/\s]+\/)?id\d+/i;
 
+const EXAMPLE_URLS = [
+  "https://apps.apple.com/us/app/spotify-music-and-podcasts/id324684580",
+  "https://apps.apple.com/us/app/instagram/id389801252",
+  "https://apps.apple.com/us/app/tiktok/id835599320",
+  "https://apps.apple.com/us/app/netflix/id363590051",
+  "https://apps.apple.com/us/app/duolingo-language-lessons/id570060128",
+];
+// Duplicate the first URL at the end so the carousel can transition off the
+// last real item into the duplicate and then snap (without animation) back
+// to index 0 — producing a seamless infinite roll.
+const LOOP_URLS = [...EXAMPLE_URLS, EXAMPLE_URLS[0]];
+
 function makeId() {
   return Math.random().toString(36).slice(2, 10);
 }
 
 export function Chat() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "intro",
-      role: "assistant",
-      kind: "text",
-      text:
-        "Paste an Apple App Store URL and I'll run an ASO audit. " +
-        "Example: https://apps.apple.com/us/app/spotify-music-and-podcasts/id324684580",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [phase, setPhase] = useState<Phase>({ kind: "idle" });
-  const [useMock, setUseMock] = useState(true);
+  const [exampleIdx, setExampleIdx] = useState(0);
+  const [exampleAnimating, setExampleAnimating] = useState(true);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
+  const hasStarted = messages.some((m) => m.role === "user");
+
   useEffect(() => {
-    // v2 key so we ignore any stale "off" state from the prior default-off build.
-    const v = localStorage.getItem("aso-use-mock-v2");
-    if (v === "0") setUseMock(false);
-  }, []);
-  useEffect(() => {
-    localStorage.setItem("aso-use-mock-v2", useMock ? "1" : "0");
-  }, [useMock]);
+    if (hasStarted) return;
+    const id = setInterval(() => {
+      setExampleIdx((i) => i + 1);
+    }, 2500);
+    return () => clearInterval(id);
+  }, [hasStarted]);
+
+  const onCarouselTransitionEnd = useCallback(() => {
+    if (exampleIdx >= EXAMPLE_URLS.length) {
+      // Just animated onto the duplicate-of-first slot. Snap back to 0
+      // without a transition so the next tick rolls forward seamlessly.
+      setExampleAnimating(false);
+      setExampleIdx(0);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setExampleAnimating(true));
+      });
+    }
+  }, [exampleIdx]);
 
   const fetchHeaders = useCallback(
     (extra?: Record<string, string>): HeadersInit => ({
       "content-type": "application/json",
-      ...(useMock ? { "x-aso-mock": "1" } : {}),
+      "x-aso-mock": "1",
       ...extra,
     }),
-    [useMock],
+    [],
   );
 
   useEffect(() => {
@@ -376,87 +393,136 @@ export function Chat() {
     phase.kind === "auditing" ||
     phase.kind === "chatting";
 
-  return (
-    <div className="flex h-full min-h-0 flex-col gap-5 p-5">
-      <header className="shrink-0 rounded-xl border border-primary bg-background px-4 py-3">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
-          <div>
-            <h1 className="text-base font-semibold">ASO Audit Agent</h1>
-            <p className="text-xs text-zinc-500">
-              Paste an App Store URL → confirm → get a scored audit.
-            </p>
-          </div>
-          <label className="flex select-none items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
-            <input
-              type="checkbox"
-              className="size-3.5 accent-amber-500"
-              checked={useMock}
-              onChange={(e) => setUseMock(e.target.checked)}
-            />
-            <span
-              className={
-                useMock
-                  ? "rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-900 dark:bg-amber-950/70 dark:text-amber-200"
-                  : ""
-              }
+  const titleCard = (
+    <header className="shrink-0 rounded-xl border border-white bg-background px-6 py-5 text-center">
+      <h1 className="font-mono text-xl font-bold uppercase tracking-wider text-white">
+        ASO Audit Agent
+      </h1>
+      <p className="mt-2 font-mono text-xs leading-relaxed text-zinc-400">
+        Paste any Apple App Store URL to get a scored ASO audit with
+        prioritized recommendations to improve your listing.
+      </p>
+    </header>
+  );
+
+  const renderInputForm = (formClassName: string) => (
+    <form onSubmit={onSubmit} className={formClassName}>
+      <div className="flex items-center gap-3">
+        <div className="relative h-5 min-w-0 flex-1">
+          {!hasStarted && !input && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 overflow-hidden"
             >
-              Mock data {useMock ? "ON" : "OFF"}
-            </span>
-          </label>
-        </div>
-      </header>
-
-      <div
-        ref={scrollerRef}
-        className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-primary bg-background px-4 py-6"
-      >
-        <div className="mx-auto flex max-w-3xl flex-col gap-4">
-          {messages.map((m) => (
-            <MessageView
-              key={m.id}
-              message={m}
-              onConfirm={resumeAudit}
-              disabled={busy}
-            />
-          ))}
-        </div>
-      </div>
-
-      <form
-        onSubmit={onSubmit}
-        className="shrink-0 rounded-xl border border-primary bg-background px-4 py-3"
-      >
-        <div className="mx-auto flex max-w-3xl items-center gap-2">
+              <div
+                className={
+                  exampleAnimating
+                    ? "transition-transform duration-500 ease-in-out"
+                    : ""
+                }
+                style={{
+                  transform: `translateY(-${
+                    (exampleIdx * 100) / LOOP_URLS.length
+                  }%)`,
+                }}
+                onTransitionEnd={onCarouselTransitionEnd}
+              >
+                {LOOP_URLS.map((url, i) => (
+                  <div
+                    key={i}
+                    className="h-5 truncate text-sm leading-5 text-zinc-500"
+                  >
+                    {url}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={
-              phase.kind === "audited"
-                ? "Ask a follow-up, or paste another App Store URL…"
-                : "Paste an Apple App Store URL…"
+              hasStarted
+                ? phase.kind === "audited"
+                  ? "Ask a follow-up, or paste another App Store URL…"
+                  : "Paste an Apple App Store URL…"
+                : ""
             }
-            className="flex-1 rounded-full border border-zinc-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-zinc-500 disabled:opacity-50 dark:border-zinc-700 dark:bg-background"
-            disabled={
-              busy || phase.kind === "awaiting-confirmation"
-            }
+            className="block h-5 w-full appearance-none border-0 bg-transparent p-0 align-middle text-sm leading-5 outline-none placeholder:text-zinc-500 disabled:opacity-50"
+            disabled={busy || phase.kind === "awaiting-confirmation"}
             autoComplete="off"
           />
-          <button
-            type="submit"
-            disabled={
-              !input.trim() || busy || phase.kind === "awaiting-confirmation"
-            }
-            className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-40 dark:bg-white dark:text-zinc-900"
-          >
-            Send
-          </button>
         </div>
-        {phase.kind === "awaiting-confirmation" && (
-          <p className="mx-auto mt-2 max-w-3xl text-center text-xs text-zinc-500">
-            Confirm the app above to continue.
+        <button
+          type="submit"
+          disabled={
+            !input.trim() || busy || phase.kind === "awaiting-confirmation"
+          }
+          className="shrink-0 cursor-pointer appearance-none border-0 bg-transparent p-0 align-middle font-mono text-sm font-bold uppercase leading-5 tracking-wider text-primary outline-none hover:bg-transparent focus:bg-transparent active:bg-transparent disabled:cursor-not-allowed disabled:opacity-30"
+        >
+          Send →
+        </button>
+      </div>
+      {phase.kind === "awaiting-confirmation" && (
+        <p className="mt-2 text-center text-xs text-zinc-500">
+          Confirm the app above to continue.
+        </p>
+      )}
+    </form>
+  );
+
+  if (!hasStarted) {
+    return (
+      <div className="flex w-full max-w-3xl flex-col items-center gap-10 px-4">
+        <div className="text-center">
+          <h1 className="font-mono text-4xl font-bold uppercase tracking-wider text-white sm:text-5xl">
+            ASO Audit Agent
+          </h1>
+          <p className="mx-auto mt-5 max-w-xl font-mono text-sm leading-relaxed text-zinc-400 sm:text-base">
+            Paste any Apple App Store URL to get a scored ASO audit with
+            prioritized recommendations to improve your listing.
           </p>
+        </div>
+        {renderInputForm(
+          "w-full max-w-xl rounded-full border border-white bg-background px-6 py-4",
         )}
-      </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-2xl">
+      <div
+        className="border border-white"
+        style={{
+          backgroundColor: "var(--background)",
+          backgroundImage: "url(/dot-bg-hero.svg)",
+        }}
+      >
+        <div className="h-[min(78vh,680px)] overflow-hidden">
+          <div className="flex h-full min-h-0 flex-col gap-5 p-5">
+            {titleCard}
+            <div
+              ref={scrollerRef}
+              className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-white bg-background px-4 py-6"
+            >
+              <div className="mx-auto flex max-w-3xl flex-col gap-4">
+                {messages.map((m) => (
+                  <MessageView
+                    key={m.id}
+                    message={m}
+                    onConfirm={resumeAudit}
+                    disabled={busy}
+                  />
+                ))}
+              </div>
+            </div>
+            {renderInputForm(
+              "shrink-0 rounded-xl border border-white bg-background px-5 py-4",
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
