@@ -12,37 +12,6 @@ type ChatBody = {
   appName?: string;
 };
 
-function isMock(req: Request): boolean {
-  if (process.env.ASO_USE_MOCK_DATA === "true") return true;
-  return req.headers.get("x-aso-mock") === "1";
-}
-
-function mockTextStream(): Response {
-  const encoder = new TextEncoder();
-  const parts = [
-    "(mock mode) ",
-    "Here's a sample follow-up answer. ",
-    "Real responses stream from the NIM agent — ",
-    "switch off mock mode in the header to use it.",
-  ];
-  const stream = new ReadableStream<Uint8Array>({
-    async start(controller) {
-      for (const p of parts) {
-        controller.enqueue(encoder.encode(p));
-        await new Promise<void>((r) => setTimeout(r, 120));
-      }
-      controller.close();
-    },
-  });
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/plain; charset=utf-8",
-      "Cache-Control": "no-cache, no-transform",
-      "X-Accel-Buffering": "no",
-    },
-  });
-}
-
 export async function POST(req: Request) {
   let body: ChatBody;
   try {
@@ -54,8 +23,6 @@ export async function POST(req: Request) {
   if (!Array.isArray(body.messages) || body.messages.length === 0) {
     return Response.json({ error: "Missing 'messages'" }, { status: 400 });
   }
-
-  if (isMock(req)) return mockTextStream();
 
   const agent = mastra.getAgent("asoAgent");
 

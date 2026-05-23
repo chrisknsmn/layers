@@ -1,17 +1,11 @@
 import { mastra } from "@/mastra";
 import { appMetadataSchema } from "@/mastra/schemas";
-import { nextMockFixture } from "@/mastra/fixtures";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type StartBody = { url?: string };
-
-function isMock(req: Request): boolean {
-  if (process.env.ASO_USE_MOCK_DATA === "true") return true;
-  return req.headers.get("x-aso-mock") === "1";
-}
 
 export async function POST(req: Request) {
   let body: StartBody;
@@ -26,16 +20,6 @@ export async function POST(req: Request) {
       { error: "Missing 'url' (Apple App Store URL)" },
       { status: 400 },
     );
-  }
-
-  if (isMock(req)) {
-    const { fixture } = nextMockFixture();
-    return NextResponse.json({
-      runId: `mock-${fixture.name}`,
-      status: "awaiting_confirmation",
-      candidate: fixture.candidate,
-      mock: true,
-    });
   }
 
   const workflow = mastra.getWorkflow("asoAuditWorkflow");

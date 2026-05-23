@@ -1,5 +1,4 @@
 import { mastra } from "@/mastra";
-import { getMockFixtureByRunId } from "@/mastra/fixtures";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,53 +7,6 @@ type ResumeBody = {
   runId?: string;
   confirmed?: boolean;
 };
-
-function mockSse(runId: string): Response {
-  const fixture = getMockFixtureByRunId(runId);
-  if (!fixture) {
-    return Response.json(
-      { error: `No mock fixture found for runId ${runId}` },
-      { status: 404 },
-    );
-  }
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    async start(controller) {
-      const send = (event: string, data: unknown) => {
-        controller.enqueue(
-          encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`),
-        );
-      };
-      const sleep = (ms: number) =>
-        new Promise<void>((r) => setTimeout(r, ms));
-
-      send("status", { message: "Resuming audit…" });
-      await sleep(400);
-      send("status", { message: "Scraping listing…" });
-      await sleep(600);
-      send("status", { message: "Comparing competitors…" });
-      await sleep(500);
-      send("status", { message: "Scoring listing…" });
-      await sleep(700);
-      send("audit", {
-        audit: fixture.audit,
-        app: fixture.candidate,
-        listing: fixture.listing,
-        competitors: fixture.competitors,
-      });
-      send("done", { result: { audit: fixture.audit } });
-      controller.close();
-    },
-  });
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream; charset=utf-8",
-      "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive",
-      "X-Accel-Buffering": "no",
-    },
-  });
-}
 
 export async function POST(req: Request) {
   let body: ResumeBody;
@@ -74,10 +26,6 @@ export async function POST(req: Request) {
       status: "cancelled",
       message: "User did not confirm. Start a new audit with a different URL.",
     });
-  }
-
-  if (body.runId.startsWith("mock-")) {
-    return mockSse(body.runId);
   }
 
   const workflow = mastra.getWorkflow("asoAuditWorkflow");

@@ -70,7 +70,6 @@ export function Chat() {
   const fetchHeaders = useCallback(
     (extra?: Record<string, string>): HeadersInit => ({
       "content-type": "application/json",
-      "x-aso-mock": "1",
       ...extra,
     }),
     [],
