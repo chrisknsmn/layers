@@ -177,19 +177,15 @@ export function Chat() {
 
   const resumeAudit = useCallback(
     async (confirmMsg: AssistantConfirm, confirmed: boolean) => {
-      update(confirmMsg.id, { resolved: confirmed ? "yes" : "no" });
-
       if (!confirmed) {
-        append({
-          id: makeId(),
-          role: "assistant",
-          kind: "text",
-          text:
-            "No problem — paste a different App Store URL and we'll try again.",
-        });
+        // Wrong app — fully reset back to the initial home screen.
+        setMessages([]);
+        setInput("");
         setPhase({ kind: "idle" });
         return;
       }
+
+      update(confirmMsg.id, { resolved: "yes" });
 
       const statusId = makeId();
       append({
@@ -405,7 +401,14 @@ export function Chat() {
     </header>
   );
 
-  const renderInputForm = (formClassName: string) => (
+  const renderInputForm = (formClassName: string) => {
+    if (
+      phase.kind === "starting" ||
+      phase.kind === "awaiting-confirmation"
+    ) {
+      return null;
+    }
+    return (
     <form onSubmit={onSubmit} className={formClassName}>
       <div className="flex items-center gap-3">
         <div className="relative h-5 min-w-0 flex-1">
@@ -430,7 +433,7 @@ export function Chat() {
                 {LOOP_URLS.map((url, i) => (
                   <div
                     key={i}
-                    className="h-5 truncate text-sm leading-5 text-zinc-500"
+                    className="h-5 truncate text-sm leading-5 text-zinc-400"
                   >
                     {url}
                   </div>
@@ -448,28 +451,22 @@ export function Chat() {
                   : "Paste an Apple App Store URL…"
                 : ""
             }
-            className="block h-5 w-full appearance-none border-0 bg-transparent p-0 align-middle text-sm leading-5 outline-none placeholder:text-zinc-500 disabled:opacity-50"
-            disabled={busy || phase.kind === "awaiting-confirmation"}
+            className="block h-5 w-full appearance-none border-0 bg-transparent p-0 align-middle text-sm leading-5 text-primary outline-none placeholder:text-zinc-400 disabled:opacity-50"
+            disabled={busy}
             autoComplete="off"
           />
         </div>
         <button
           type="submit"
-          disabled={
-            !input.trim() || busy || phase.kind === "awaiting-confirmation"
-          }
+          disabled={!input.trim() || busy}
           className="shrink-0 cursor-pointer appearance-none border-0 bg-transparent p-0 align-middle font-mono text-sm font-bold uppercase leading-5 tracking-wider text-primary outline-none hover:bg-transparent focus:bg-transparent active:bg-transparent disabled:cursor-not-allowed disabled:opacity-30"
         >
           Send →
         </button>
       </div>
-      {phase.kind === "awaiting-confirmation" && (
-        <p className="mt-2 text-center text-xs text-zinc-500">
-          Confirm the app above to continue.
-        </p>
-      )}
     </form>
-  );
+    );
+  };
 
   if (!hasStarted) {
     return (

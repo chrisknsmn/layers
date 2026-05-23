@@ -57,7 +57,7 @@ function DimensionBar({
         aria-hidden
       >
         <div
-          className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 dark:from-emerald-500 dark:to-emerald-300"
+          className="h-full rounded-full bg-primary"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -93,7 +93,7 @@ function ScoreRing({ value }: { value: number }) {
         strokeDasharray={c}
         strokeDashoffset={offset}
         strokeLinecap="round"
-        className="stroke-emerald-500 transition-all duration-500"
+        className="stroke-primary transition-all duration-500"
       />
     </svg>
   );

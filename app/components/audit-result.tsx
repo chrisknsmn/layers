@@ -138,21 +138,21 @@ function RecommendationsSection({
             {(item.before || item.after) && (
               <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {item.before && (
-                  <div className="rounded-md border border-rose-200/60 bg-rose-50 p-2 text-xs dark:border-rose-900/40 dark:bg-rose-950/20">
-                    <div className="font-mono text-[10px] uppercase text-rose-700 dark:text-rose-400">
+                  <div className="rounded-md border border-white/40 bg-transparent p-2 text-xs">
+                    <div className="font-mono text-[10px] uppercase text-white">
                       Before
                     </div>
-                    <div className="mt-0.5 text-zinc-800 dark:text-zinc-200">
+                    <div className="mt-0.5 text-zinc-200">
                       {item.before}
                     </div>
                   </div>
                 )}
                 {item.after && (
-                  <div className="rounded-md border border-emerald-200/60 bg-emerald-50 p-2 text-xs dark:border-emerald-900/40 dark:bg-emerald-950/20">
-                    <div className="font-mono text-[10px] uppercase text-emerald-700 dark:text-emerald-400">
+                  <div className="rounded-md border border-primary/40 bg-transparent p-2 text-xs">
+                    <div className="font-mono text-[10px] uppercase text-primary">
                       After
                     </div>
-                    <div className="mt-0.5 text-zinc-800 dark:text-zinc-200">
+                    <div className="mt-0.5 text-zinc-200">
                       {item.after}
                     </div>
                   </div>
@@ -183,21 +183,24 @@ function CompetitorTable({
         {rows.map((row, idx) => {
           const comp = competitors[idx];
           return (
-            <li key={idx} className="flex items-start gap-3 py-3">
-              {comp?.artworkUrl ? (
-                <Image
-                  src={comp.artworkUrl}
-                  alt=""
-                  width={36}
-                  height={36}
-                  className="size-9 rounded-lg"
-                  unoptimized
-                />
-              ) : (
-                <div className="size-9 rounded-lg bg-zinc-100 dark:bg-zinc-900" />
-              )}
+            <li key={idx} className="py-3">
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium">{row.name}</div>
+                {comp ? (
+                  <a
+                    href={
+                      comp.trackViewUrl ??
+                      `https://apps.apple.com/app/id${comp.trackId}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 truncate text-sm font-medium text-primary hover:underline"
+                  >
+                    {row.name}
+                    <span aria-hidden>↗</span>
+                  </a>
+                ) : (
+                  <div className="truncate text-sm font-medium">{row.name}</div>
+                )}
                 <div className="text-xs text-zinc-500">{row.rating}</div>
                 <div className="mt-1 text-sm text-zinc-700 dark:text-zinc-300">
                   {row.notes}
@@ -211,15 +214,9 @@ function CompetitorTable({
   );
 }
 
-function accentDot(accent: "emerald" | "amber" | "sky"): string {
-  switch (accent) {
-    case "emerald":
-      return "bg-emerald-500";
-    case "amber":
-      return "bg-amber-500";
-    case "sky":
-      return "bg-sky-500";
-  }
+function accentDot(_accent: "emerald" | "amber" | "sky"): string {
+  // All recommendation sections use the brand green dot for consistency.
+  return "bg-primary";
 }
 
 function formatCount(n: number): string {
