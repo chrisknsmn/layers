@@ -24,6 +24,12 @@ Example app url:
 https://apps.apple.com/us/app/spotify-music-and-podcasts/id324684580
 ```
 
+## Production link
+
+```bash
+https://layers-navy.vercel.app/
+```
+
 ### Required env
 
 - `NVIDIA_NIM_API_KEY` — free key from <https://build.nvidia.com>. The default
